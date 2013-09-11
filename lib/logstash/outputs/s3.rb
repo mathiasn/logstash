@@ -187,7 +187,7 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
 
   # prepare for write the file
   object = bucket.objects[file_basename]
-  object.write(:file => file_data, :acl => :public_read)
+  object.write(:file => file_data, :acl => :authenticated_read)
  
   @logger.debug "S3: has written "+file_basename+" in bucket "+@bucket
 

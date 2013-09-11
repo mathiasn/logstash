@@ -65,10 +65,11 @@ require "logstash/namespace"
 #      access_key_id => "crazy_key"             (required)
 #      secret_access_key => "monkey_access_key" (required)
 #      endpoint_region => "eu-west-1"           (required)
-#      bucket => "boss_please_open_your_bucket" (required)         
+#      bucket => "boss_please_open_your_bucket" (required)
+#      prefix => "folder"                       (required)
 #      size_file => 2048                        (optional)
 #      time_file => 5                           (optional)
-#      format => "plain"                        (optional) 
+#      format => "plain"                        (optional)
 #    }
 # }
 
@@ -85,6 +86,9 @@ require "logstash/namespace"
 
 # bucket => "boss_please_open_your_bucket" 
 # Be careful you have the permission to write on bucket and know the name.
+
+# prefix => "folder"
+# s3 folder inside bucket, use "" for root
 
 # size_file => 2048
 # Means the size, in KB, of files who can store on temporary directory before you will be pushed on bucket.
@@ -113,6 +117,8 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
 
  # S3 bucket
  config :bucket, :validate => :string
+
+ config :prefix, :validate => :string
 
  # Aws endpoint_region
  config :endpoint_region, :validate => ["us_east_1", "us-west-1", "us-west-2",
@@ -186,10 +192,11 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
   @logger.debug "S3: ready to write "+file_basename+" in bucket "+@bucket+", Fire in the hole!"
 
   # prepare for write the file
-  object = bucket.objects[file_basename]
+  filename = @prefix + '/' + file_basename
+  object = bucket.objects[filename]
   object.write(:file => file_data, :acl => :authenticated_read)
  
-  @logger.debug "S3: has written "+file_basename+" in bucket "+@bucket
+  @logger.debug "S3: has written "+filename+" in bucket "+@bucket
 
  end
   
@@ -222,7 +229,7 @@ class LogStash::Outputs::S3 < LogStash::Outputs::Base
        end
      end
 
-     File.delete (file)
+     File.delete(file)
 
    end
  end
